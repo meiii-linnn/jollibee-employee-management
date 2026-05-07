@@ -84,19 +84,36 @@ def seed_data():
 
 @app.route('/')
 def index():
-    return jsonify({
-        'message': 'Jollibee Employee Management API',
-        'version': '1.0.0',
-        'endpoints': {
-            'auth': '/api/auth/login',
-            'employees': '/api/employees',
-            'attendance': '/api/attendance',
-            'contracts': '/api/contracts',
-            'insurance': '/api/insurance',
-            'salary': '/api/salary',
-            'schedule': '/api/schedule'
-        }
-    })
+    # Debug: Check if dist folder exists
+    import os
+    frontend_build = os.path.join(os.path.dirname(__file__), 'jollibee-frontend', 'dist')
+    dist_exists = os.path.exists(frontend_build)
+
+    if dist_exists:
+        # Serve React
+        from flask import send_from_directory
+        return send_from_directory(frontend_build, 'index.html')
+    else:
+        # Return JSON with debug info
+        return jsonify({
+            'message': 'Jollibee Employee Management API',
+            'version': '1.0.0',
+            'debug': {
+                'dist_exists': dist_exists,
+                'frontend_path': frontend_build,
+                'current_dir': os.path.dirname(__file__),
+                'files_in_current': os.listdir(os.path.dirname(__file__)) if os.path.exists(os.path.dirname(__file__)) else []
+            },
+            'endpoints': {
+                'auth': '/api/auth/login',
+                'employees': '/api/employees',
+                'attendance': '/api/attendance',
+                'contracts': '/api/contracts',
+                'insurance': '/api/insurance',
+                'salary': '/api/salary',
+                'schedule': '/api/schedule'
+            }
+        })
 
 @app.route('/api/auth/login', methods=['POST'])
 def login():
