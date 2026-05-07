@@ -208,18 +208,20 @@ from flask import send_from_directory
 
 frontend_build = os.path.join(os.path.dirname(__file__), 'jollibee-frontend', 'dist')
 
-if os.path.exists(frontend_build):
-    @app.route('/', defaults={'path': ''})
-    @app.route('/<path:path>')
-    def serve_react(path):
-        if path != "" and os.path.exists(os.path.join(frontend_build, path)):
-            return send_from_directory(frontend_build, path)
-        else:
-            return send_from_directory(frontend_build, 'index.html')
+# ALWAYS serve React (remove conditional check)
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_react(path):
+    if path.startswith('/api/'):
+        return jsonify({'error': 'API endpoint not found'}), 404
+    if path != "" and os.path.exists(os.path.join(frontend_build, path)):
+        return send_from_directory(frontend_build, path)
+    else:
+        return send_from_directory(frontend_build, 'index.html')
 
-    @app.route('/jollibee-logo.png')
-    def serve_logo():
-        return send_from_directory(os.path.dirname(__file__), 'jollibee-logo.png')
+@app.route('/jollibee-logo.png')
+def serve_logo():
+    return send_from_directory(os.path.dirname(__file__), 'jollibee-logo.png')
 
 if __name__ == '__main__':
     if not os.path.exists('jollibee.db') and not os.environ.get('DATABASE_URL'):
