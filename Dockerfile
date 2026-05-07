@@ -1,29 +1,13 @@
 FROM python:3.11-slim
 
-# Install Node.js 20 (more compatible with React 19)
-RUN apt-get update && \
-    apt-get install -y curl && \
-    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
-    apt-get install -y nodejs && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
 WORKDIR /app
 
-# Install Python dependencies first
+# Install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy frontend package files and install dependencies
-COPY jollibee-frontend/package*.json ./jollibee-frontend/
-WORKDIR /app/jollibee-frontend
-RUN npm ci --production=false
-
-# Copy frontend source and build
-COPY jollibee-frontend/ ./jollibee-frontend/
-RUN npm run build || echo "Build failed, trying alternative method..."
-
-WORKDIR /app
+# Copy pre-built frontend
+COPY jollibee-frontend/dist ./jollibee-frontend/dist
 
 # Copy backend files
 COPY models.py .
@@ -37,7 +21,7 @@ COPY insurance/ ./insurance/
 COPY salary/ ./salary/
 COPY schedule/ ./schedule/
 
-# Copy app.py last
+# Copy app.py
 COPY app.py .
 
 # Copy logo
